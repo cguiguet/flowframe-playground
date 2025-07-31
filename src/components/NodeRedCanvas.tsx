@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Play } from 'lucide-react';
 import { nodeTypes, nodeLibrary } from '@/components/nodes';
 
-// Nœuds initiaux
+// Initial nodes
 const initialNodes: Node[] = [
   {
     id: '1',
@@ -28,7 +28,7 @@ const initialNodes: Node[] = [
 
 const initialEdges: Edge[] = [];
 
-const NodeRedCanvas = () => {
+const NodeRedCanvas = ({ onNodeClick }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
@@ -39,7 +39,7 @@ const NodeRedCanvas = () => {
 
   const handleRun = () => {
     console.log('Running flow with nodes:', nodes);
-    // TODO: Implémenter la logique d'exécution
+    // TODO: Implement execution logic
   };
 
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -49,7 +49,7 @@ const NodeRedCanvas = () => {
 
   return (
     <div className="h-full flex">
-      {/* Librairie de nœuds à gauche */}
+      {/* Node Library on the left */}
       <div className="w-48 bg-card border-r border-border flex flex-col">
         <div className="p-3 border-b border-border">
           <h3 className="text-sm font-medium text-card-foreground">Node Library</h3>
@@ -68,9 +68,9 @@ const NodeRedCanvas = () => {
         </div>
       </div>
 
-      {/* Canvas principal */}
+      {/* Main Canvas */}
       <div className="flex-1 flex flex-col">
-        {/* Header avec bouton Run */}
+        {/* Header with Run button */}
         <div className="h-12 bg-card border-b border-border flex items-center justify-between px-4">
           <h2 className="text-sm font-medium text-card-foreground">Flow Canvas</h2>
           <Button onClick={handleRun} size="sm" className="gap-2">
@@ -79,7 +79,7 @@ const NodeRedCanvas = () => {
           </Button>
         </div>
 
-        {/* Canvas ReactFlow */}
+        {/* ReactFlow Canvas */}
         <div className="flex-1">
           <ReactFlow
             nodes={nodes}
@@ -87,6 +87,7 @@ const NodeRedCanvas = () => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeClick={(event, node) => onNodeClick(node)}
             nodeTypes={nodeTypes}
             fitView
             style={{ backgroundColor: 'hsl(var(--background))' }}
