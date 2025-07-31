@@ -14,7 +14,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Button } from '@/components/ui/button';
 import { Play } from 'lucide-react';
-import { nodeTypes, nodeLibrary } from '@/components/nodes';
+import { nodeTypes, nodeLibrary } from '@/core/nodes/nodeRegistry';
 
 // Initial nodes
 const initialNodes: Node[] = [
