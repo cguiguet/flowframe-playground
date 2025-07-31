@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -10,6 +10,8 @@ import {
   Node,
   Edge,
   Connection,
+  useReactFlow,
+  ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Button } from '@/components/ui/button';
@@ -28,14 +30,23 @@ const initialNodes: Node[] = [
 
 const initialEdges: Edge[] = [];
 
-const NodeRedCanvas = ({ onNodeClick }) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+let id = 1;
+const getId = () => `${id++}`;
 
-  const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges],
-  );
+const NodeRedCanvasContent = ({ 
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  onNodeClick,
+  setNodes
+}) => {
+  const reactFlowWrapper = useRef(null);
+  
+  const { screenToFlowPosition } = useReactFlow();
+
+  
 
   const handleRun = () => {
     console.log('Running flow with nodes:', nodes);
@@ -46,6 +57,37 @@ const NodeRedCanvas = ({ onNodeClick }) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const type = event.dataTransfer.getData('application/reactflow');
+
+      if (typeof type === 'undefined' || !type) {
+        return;
+      }
+
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      const newNode: Node = {
+        id: getId(),
+        type,
+        position,
+        data: { label: `${type} node` },
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [screenToFlowPosition, setNodes],
+  );
 
   return (
     <div className="h-full flex">
@@ -80,7 +122,7 @@ const NodeRedCanvas = ({ onNodeClick }) => {
         </div>
 
         {/* ReactFlow Canvas */}
-        <div className="flex-1">
+        <div className="flex-1" ref={reactFlowWrapper}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -89,6 +131,8 @@ const NodeRedCanvas = ({ onNodeClick }) => {
             onConnect={onConnect}
             onNodeClick={(event, node) => onNodeClick(node)}
             nodeTypes={nodeTypes}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
             fitView
             style={{ backgroundColor: 'hsl(var(--background))' }}
           >
@@ -99,6 +143,30 @@ const NodeRedCanvas = ({ onNodeClick }) => {
         </div>
       </div>
     </div>
+  );
+};
+
+const NodeRedCanvas = ({ 
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  onNodeClick,
+  setNodes
+}) => {
+  return (
+    <ReactFlowProvider>
+      <NodeRedCanvasContent 
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onNodeClick={onNodeClick} 
+        setNodes={setNodes}
+      />
+    </ReactFlowProvider>
   );
 };
 

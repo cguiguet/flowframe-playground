@@ -1,16 +1,62 @@
 import React from 'react';
+import { Node } from '@xyflow/react';
+import { nodeConfigurationPanels } from '@/core/nodes/nodeRegistry';
 
-const ConfigurationPanel = ({ node }) => {
-  if (!node) {
-    return null;
+/**
+ * Props pour le panneau de configuration.
+ * - `selectedNode`: Le nœud actuellement sélectionné sur le canevas.
+ * - `onNodeDataChange`: La fonction à appeler pour mettre à jour les données du nœud.
+ */
+interface ConfigurationPanelProps {
+  selectedNode: Node | null;
+  onNodeDataChange: (nodeId: string, newData: any) => void;
+}
+
+/**
+ * Ce composant affiche dynamiquement le formulaire de configuration approprié
+ * pour le nœud sélectionné.
+ */
+const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, onNodeDataChange }) => {
+  // Si aucun nœud n'est sélectionné, afficher un message d'aide.
+  if (!selectedNode) {
+    return (
+      <div className="p-4 h-full flex items-center justify-center text-muted-foreground">
+        <p>Sélectionnez un nœud pour le configurer.</p>
+      </div>
+    );
   }
 
+  // Trouve le composant de configuration correspondant au type du nœud depuis le registre.
+  const ConfigComponent = nodeConfigurationPanels[selectedNode.type];
+
+  // Crée la fonction de rappel qui sera passée au formulaire enfant.
+  // Elle encapsule l'ID du nœud pour que le parent puisse l'identifier.
+  const handleDataChange = (newData: any) => {
+    onNodeDataChange(selectedNode.id, newData);
+  };
+
   return (
-    <div className="p-4 border-l h-full">
-      <h3 className="font-bold mb-4">Configuration</h3>
-      <p>ID: {node.id}</p>
-      <p>Type: {node.type}</p>
-      {/* Add more configuration options here */}
+    <div className="border-l h-full bg-card flex flex-col">
+      <div className="p-4 border-b shrink-0">
+        <h3 className="font-bold text-lg text-card-foreground">Configuration</h3>
+        <p className="text-xs text-muted-foreground">Type: {selectedNode.type}</p>
+        <p className="text-xs text-muted-foreground">ID: {selectedNode.id}</p>
+      </div>
+
+      <div className="flex-grow overflow-y-auto">
+        {ConfigComponent ? (
+          // Si un composant de configuration existe pour ce type de nœud, on l'affiche.
+          <ConfigComponent 
+            nodeData={selectedNode.data}
+            onDataChange={handleDataChange} 
+          />
+        ) : (
+          // Sinon, on affiche un message par défaut.
+          <div className="p-4 text-muted-foreground">
+            <p>Ce nœud n'a pas de configuration spécifique.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

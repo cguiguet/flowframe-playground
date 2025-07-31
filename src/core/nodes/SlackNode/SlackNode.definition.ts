@@ -1,9 +1,9 @@
 import { Node } from '@xyflow/react';
 import { SlackNode } from './SlackNode';
+import { SlackNodeConfiguration } from './SlackNode.configuration'; // Import du composant de configuration
 
 /**
  * Définit la structure des données spécifiques pour ce nœud.
- * Cela garantit la sécurité des types lors de l'accès à `node.data`.
  */
 export interface SlackNodeData {
   label: string;
@@ -12,22 +12,27 @@ export interface SlackNodeData {
 }
 
 /**
- * La source unique de vérité pour les propriétés et le comportement du SlackNode.
+ * La définition complète pour le SlackNode.
  */
 export const SlackNodeDefinition = {
   /**
-   * Un identifiant de type unique pour ce nœud.
-   * Utilisé par React Flow pour savoir quel composant afficher.
+   * Identifiant de type unique.
    */
   type: 'slack',
   
   /**
-   * Le composant React responsable de l'affichage du nœud sur le canevas.
+   * Le composant React pour l'affichage sur le canevas.
    */
   component: SlackNode,
 
   /**
-   * Métadonnées utilisées pour afficher ce nœud dans la bibliothèque de la barre latérale.
+   * Le composant React pour le panneau de configuration.
+   * C'est la nouvelle propriété clé qui lie un nœud à son formulaire.
+   */
+  configurationComponent: SlackNodeConfiguration,
+
+  /**
+   * Métadonnées pour la barre latérale.
    */
   library: {
     label: 'Slack',
@@ -35,11 +40,10 @@ export const SlackNodeDefinition = {
   },
 
   /**
-   * Une fonction "factory" qui retourne une nouvelle instance du nœud avec des valeurs par défaut.
-   * @returns {Node<SlackNodeData>} Un nouvel objet de nœud.
+   * Crée une nouvelle instance du nœud avec des valeurs par défaut.
    */
   create: (): Node<SlackNodeData> => ({
-    id: '', // L'ID sera défini dynamiquement par React Flow
+    id: '',
     type: 'slack',
     position: { x: 0, y: 0 },
     data: {
@@ -50,7 +54,7 @@ export const SlackNodeDefinition = {
   }),
 
   /**
-   * Définit les points de connexion (poignées) d'entrée et de sortie pour le nœud.
+   * Définit les poignées de connexion (entrées/sorties).
    */
   handles: {
     inputs: [{ id: 'input', type: 'target' }],
