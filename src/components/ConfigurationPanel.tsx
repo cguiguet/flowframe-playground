@@ -24,7 +24,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, o
   // Si aucun nœud n'est sélectionné, afficher un message d'aide.
   if (!selectedNode) {
     return (
-      <div className="p-6 h-full flex items-center justify-center text-slate-500 bg-white rounded-lg shadow-lg m-4">
+      <div className="p-6 h-full flex items-center justify-center text-slate-500 bg-white rounded-lg m-4">
         <p>Select a node to configure it.</p>
       </div>
     );
@@ -40,7 +40,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, o
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl m-4 flex flex-col h-[calc(100%-2rem)]">
+    <div className="bg-white rounded-xl m-4 flex flex-col h-[calc(100%-2rem)]">
             <div className="p-6 border-b border-slate-200 shrink-0 flex justify-between items-start">
         <div>
           <h3 className="font-bold text-xl text-slate-800">Configuration</h3>
