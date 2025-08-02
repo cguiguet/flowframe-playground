@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Play, Loader } from 'lucide-react';
 import { nodeTypes, allNodeDefinitions } from '@/core/nodes/nodeRegistry';
 import NodeLibrary from './NodeLibrary';
+
 import { runFlow } from '@/core/flow-executor';
 import { nanoid } from 'nanoid';
 
@@ -26,9 +27,17 @@ const CanvasContent = ({
   onNodeClick,
   setNodes,
   isRunning,
-  handleRun
+  handleRun,
+  isLibraryCollapsed,
+  onToggleLibrary
 }) => {
-  const { screenToFlowPosition } = useReactFlow();
+    const { screenToFlowPosition, fitView } = useReactFlow();
+
+  useEffect(() => {
+    if (isRunning) {
+      fitView({ duration: 300 });
+    }
+  }, [isRunning, fitView]);
 
 
 
@@ -58,7 +67,7 @@ const CanvasContent = ({
 
   return (
     <div className="h-full flex">
-      <NodeLibrary />
+      <NodeLibrary isCollapsed={isLibraryCollapsed} onToggleCollapse={onToggleLibrary} />
       <div className="flex-1 relative">
         <Button onClick={handleRun} size="sm" className="gap-2 absolute top-4 right-4 z-10 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200" disabled={isRunning}>
           {isRunning ? <Loader className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}

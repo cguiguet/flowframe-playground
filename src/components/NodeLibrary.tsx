@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { nodeLibrary } from '@/core/nodes/nodeRegistry';
 import { Pin, PinOff, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,12 +8,16 @@ const onDragStart = (event: React.DragEvent, nodeType: string) => {
   event.dataTransfer.effectAllowed = 'move';
 };
 
-const NodeLibrary = () => {
-  const [isPinned, setIsPinned] = useState(false);
+interface NodeLibraryProps {
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+}
+
+const NodeLibrary: React.FC<NodeLibraryProps> = ({ isCollapsed, onToggleCollapse }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
 
-  const isOpen = isPinned || isHovering;
+  const isOpen = !isCollapsed || isHovering;
 
   const toggleCategory = (category: string) => {
     setCollapsedCategories(prev => ({ ...prev, [category]: !prev[category] }));
@@ -39,8 +43,8 @@ const NodeLibrary = () => {
         <h3 className={`text-xl font-bold text-slate-800 whitespace-nowrap overflow-hidden transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
           Node Library
         </h3>
-        <Button onClick={() => setIsPinned(!isPinned)} variant="ghost" size="icon" className="flex-shrink-0">
-          {isPinned ? <PinOff className="h-5 w-5" /> : <Pin className="h-5 w-5" />}
+                <Button onClick={onToggleCollapse} variant="ghost" size="icon" className="flex-shrink-0">
+                    {isCollapsed ? <Pin className="h-5 w-5" /> : <PinOff className="h-5 w-5" />}
         </Button>
       </div>
 

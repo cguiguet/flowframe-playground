@@ -3,8 +3,9 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import SidePanel from "@/components/SidePanel";
 import { runFlow } from '@/core/flow-executor';
 import NodeRedCanvas from "@/components/NodeRedCanvas";
+
 import ConfigurationPanel from "@/components/ConfigurationPanel";
-import { useNodesState, useEdgesState, addEdge, Node, Edge, Connection, NodeChange } from '@xyflow/react';
+import { useNodesState, useEdgesState, addEdge, Node, Edge, Connection, NodeChange, MarkerType } from '@xyflow/react';
 
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
@@ -14,7 +15,8 @@ const Index = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
     const [isFlowRunning, setIsFlowRunning] = useState(false);
-  const [isEmulatorVisible, setIsEmulatorVisible] = useState(false);
+    const [isEmulatorVisible, setIsEmulatorVisible] = useState(false);
+  const [isLibraryCollapsed, setIsLibraryCollapsed] = useState(false);
 
     const onNodesChange = useCallback((changes: NodeChange[]) => {
     onNodesChangeOriginal(changes);
@@ -29,8 +31,11 @@ const Index = () => {
     }
   }, [onNodesChangeOriginal]);
 
-  const onConnect = useCallback(
-    (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
+    const onConnect = useCallback(
+    (params: Connection | Edge) => {
+      const newEdge = { ...params, markerEnd: { type: MarkerType.ArrowClosed, color: '#6b7280' }, style: { stroke: '#6b7280' } };
+      setEdges((eds) => addEdge(newEdge, eds));
+    },
     [setEdges]
   );
 
@@ -79,9 +84,16 @@ const Index = () => {
     setIsEmulatorVisible(false);
   };
 
-    const handleRun = async () => {
+  const handleToggleLibrary = () => {
+    setIsLibraryCollapsed(!isLibraryCollapsed);
+  };
+
+  const handleRun = async () => {
     setIsFlowRunning(true);
-    setIsEmulatorVisible(true);
+            setIsEmulatorVisible(true);
+    if (!isLibraryCollapsed) {
+      setIsLibraryCollapsed(true);
+    }
     console.log('Running flow with:', { nodes, edges });
     try {
       const result = await runFlow(nodes, edges);
@@ -98,37 +110,44 @@ const Index = () => {
   return (
     <div className="h-screen w-screen">
       <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel defaultSize={selectedNode ? 60 : 80}>
-          <NodeRedCanvas
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onNodeClick={handleNodeClick}
-                        onPaneClick={handlePaneClick}
-            setNodes={setNodes}
-                        isRunning={isFlowRunning}
-            handleRun={handleRun}
-          />
+        <ResizablePanel defaultSize={isEmulatorVisible ? 50 : (selectedNode ? 80 : 100)}>
+            <NodeRedCanvas
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onNodeClick={handleNodeClick}
+              onPaneClick={handlePaneClick}
+              setNodes={setNodes}
+              isRunning={isFlowRunning}
+              handleRun={handleRun}
+              isLibraryCollapsed={isLibraryCollapsed}
+              onToggleLibrary={handleToggleLibrary}
+            />
         </ResizablePanel>
-        <ResizableHandle withHandle />
         
         {selectedNode && (
-          <ResizablePanel defaultSize={20} minSize={15}>
-            <ConfigurationPanel 
-              selectedNode={selectedNode}
-              onNodeDataChange={handleNodeDataChange}
-              onDeleteNode={deleteNode}
-              onClose={handleClosePanel}
-            />
-          </ResizablePanel>
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={20} minSize={15}>
+              <ConfigurationPanel 
+                selectedNode={selectedNode}
+                onNodeDataChange={handleNodeDataChange}
+                onDeleteNode={deleteNode}
+                onClose={handleClosePanel}
+              />
+            </ResizablePanel>
+          </>
         )}
-        
-                {isEmulatorVisible && (
-          <ResizablePanel defaultSize={20} minSize={5} collapsible={true} collapsedSize={0}>
-                        <SidePanel onClose={handleCloseEmulator} />
-          </ResizablePanel>
+
+        {isEmulatorVisible && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={50} minSize={30}>
+              <SidePanel onClose={handleCloseEmulator} />
+            </ResizablePanel>
+          </>
         )}
       </ResizablePanelGroup>
     </div>
