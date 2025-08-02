@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { nodeLibrary } from '@/core/nodes/nodeRegistry';
 import { Pin, PinOff, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,25 @@ interface NodeLibraryProps {
 const NodeLibrary: React.FC<NodeLibraryProps> = ({ isCollapsed, onToggleCollapse }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const hoverTimeoutRef = useRef<number | null>(null);
+
+  const handleMouseEnter = (nodeType: string) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = window.setTimeout(() => {
+      setHoveredNode(nodeType);
+    }, 300); // 0.3-second delay
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setHoveredNode(null);
+  };
 
   const isOpen = !isCollapsed || isHovering;
 
@@ -23,7 +42,15 @@ const NodeLibrary: React.FC<NodeLibraryProps> = ({ isCollapsed, onToggleCollapse
     setCollapsedCategories(prev => ({ ...prev, [category]: !prev[category] }));
   };
 
-  const categorizedNodes = nodeLibrary.reduce((acc, node) => {
+  const filteredNodes = nodeLibrary.filter(node => {
+    if (!searchTerm) return true;
+    const searchTermLower = searchTerm.toLowerCase();
+    const nameMatch = node.label.toLowerCase().includes(searchTermLower);
+    const descriptionMatch = node.description?.toLowerCase().includes(searchTermLower) ?? false;
+    return nameMatch || descriptionMatch;
+  });
+
+  const categorizedNodes = filteredNodes.reduce((acc, node) => {
     const category = node.category || 'Uncategorized';
     if (!acc[category]) {
       acc[category] = [];
@@ -39,13 +66,24 @@ const NodeLibrary: React.FC<NodeLibraryProps> = ({ isCollapsed, onToggleCollapse
       className={`relative h-full bg-slate-50 border-r border-slate-200 transition-all duration-300 ease-in-out ${isOpen ? 'w-72' : 'w-20'}`}>
       
       {/* Header */}
-      <div className={`p-3 flex items-center justify-between ${isOpen ? 'border-b' : ''} border-border`}>
+      <div className={`p-3 flex flex-col gap-4 ${isOpen ? 'border-b' : ''} border-border`}>
+        <div className="flex items-center justify-between">
         <h3 className={`text-xl font-bold text-slate-800 whitespace-nowrap overflow-hidden transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
           Node Library
         </h3>
-                <Button onClick={onToggleCollapse} variant="ghost" size="icon" className="flex-shrink-0">
-                    {isCollapsed ? <Pin className="h-5 w-5" /> : <PinOff className="h-5 w-5" />}
+        <Button onClick={onToggleCollapse} variant="ghost" size="icon" className="flex-shrink-0">
+          {isCollapsed ? <Pin className="h-5 w-5" /> : <PinOff className="h-5 w-5" />}
         </Button>
+        </div>
+        <div className={`transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          <input
+            type="text"
+            placeholder="Search nodes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-2 border rounded-md bg-slate-100 border-slate-300 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
       </div>
 
       {/* Content: Either the full library or the vertical text */}
@@ -62,11 +100,16 @@ const NodeLibrary: React.FC<NodeLibraryProps> = ({ isCollapsed, onToggleCollapse
                 {nodes.map((node) => (
                   <div
                     key={node.type}
-                    className="p-4 bg-white rounded-xl text-base font-medium text-slate-700 cursor-grab shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-slate-200"
+                    className="p-4 bg-white rounded-xl cursor-grab shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-slate-200"
                     draggable
                     onDragStart={(event) => onDragStart(event, node.type)}
+                    onMouseEnter={() => handleMouseEnter(node.type)}
+                    onMouseLeave={handleMouseLeave}
                   >
-                    {node.label}
+                    <div className="text-base font-medium text-slate-700">{node.label}</div>
+                    {(searchTerm || hoveredNode === node.type) && node.description && (
+                      <p className="text-sm text-slate-500 mt-1">{node.description}</p>
+                    )}
                   </div>
                 ))}
                 </div>

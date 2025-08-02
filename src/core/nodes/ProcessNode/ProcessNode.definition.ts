@@ -30,6 +30,7 @@ export const ProcessNodeDefinition = {
    */
   library: {
     label: 'Process Node',
+    description: 'A generic node for custom processing.',
     category: 'Custom',
   },
 

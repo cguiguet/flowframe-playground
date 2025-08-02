@@ -37,6 +37,7 @@ export const SlackNodeDefinition = {
    */
   library: {
     label: 'Slack',
+    description: 'Sends a message to a Slack channel.',
     category: 'Services',
   },
 

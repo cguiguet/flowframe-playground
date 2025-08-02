@@ -50,6 +50,7 @@ export const nodeTypes = Object.fromEntries(
 export const nodeLibrary = allNodeDefinitions.map(def => ({
   type: def.type,
   label: def.library.label,
+  description: def.library.description,
   category: def.library.category,
 }));
 

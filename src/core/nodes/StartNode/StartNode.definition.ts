@@ -30,6 +30,7 @@ export const StartNodeDefinition = {
    */
   library: {
     label: 'Start',
+    description: 'Triggers the workflow with initial data.',
     category: 'Triggers',
   },
 
