@@ -31,7 +31,8 @@ const CanvasContent = ({
   handleRun,
   isLibraryCollapsed,
   onToggleLibrary,
-  runningNodeId
+  runningNodeId,
+  isFlowRunnable
 }) => {
     const { screenToFlowPosition, fitView } = useReactFlow();
 
@@ -108,7 +109,7 @@ const CanvasContent = ({
             </div>
           )}
         </ReactFlow>
-        <Button onClick={handleRun} size="sm" className="gap-2 absolute top-4 right-4 z-10 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200" disabled={isRunning}>
+        <Button onClick={handleRun} size="sm" className="gap-2 absolute top-4 right-4 z-10 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled={!isFlowRunnable || isRunning}>
           {isRunning ? <Loader className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
           {isRunning ? 'Running...' : 'Run'}
         </Button>

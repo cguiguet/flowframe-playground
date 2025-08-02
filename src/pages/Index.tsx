@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import SidePanel from "@/components/SidePanel";
-import { runFlow } from '@/core/flow-executor';
+import { runFlow, isFlowRunnable as checkIsFlowRunnable } from '@/core/flow-executor';
 import NodeRedCanvas from "@/components/NodeRedCanvas";
 
 import ConfigurationPanel from "@/components/ConfigurationPanel";
@@ -17,7 +17,8 @@ const Index = () => {
       const [isFlowRunning, setIsFlowRunning] = useState(false);
   const [runningNodeId, setRunningNodeId] = useState<string | null>(null);
     const [isEmulatorVisible, setIsEmulatorVisible] = useState(false);
-  const [isLibraryCollapsed, setIsLibraryCollapsed] = useState(false);
+    const [isLibraryCollapsed, setIsLibraryCollapsed] = useState(false);
+  const [isFlowRunnable, setIsFlowRunnable] = useState(false);
 
     const onNodesChange = useCallback((changes: NodeChange[]) => {
     onNodesChangeOriginal(changes);
@@ -81,6 +82,10 @@ const Index = () => {
     );
       }, [selectedNode, setNodes]);
 
+  useEffect(() => {
+    setIsFlowRunnable(checkIsFlowRunnable(nodes, edges));
+  }, [nodes, edges]);
+
   const handleCloseEmulator = () => {
     setIsEmulatorVisible(false);
   };
@@ -127,6 +132,7 @@ const Index = () => {
               isLibraryCollapsed={isLibraryCollapsed}
               onToggleLibrary={handleToggleLibrary}
               runningNodeId={runningNodeId}
+              isFlowRunnable={isFlowRunnable}
             />
         </ResizablePanel>
         

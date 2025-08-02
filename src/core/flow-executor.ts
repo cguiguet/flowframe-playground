@@ -74,6 +74,30 @@ function getExecutionOrder(nodes: Node[], edges: Edge[]): string[] {
 }
 
 /**
+ * Checks if the current flow is in a runnable state.
+ * A flow is runnable if it contains at least one 'start' node and has no cycles.
+ * 
+ * @param nodes - The array of nodes from the React Flow state.
+ * @param edges - The array of edges from the React Flow state.
+ * @returns `true` if the flow is runnable, `false` otherwise.
+ */
+export function isFlowRunnable(nodes: Node[], edges: Edge[]): boolean {
+  if (nodes.length === 0) {
+    return false;
+  }
+
+  const hasStartNode = nodes.some(node => node.type === 'start');
+  if (!hasStartNode) {
+    return false;
+  }
+
+  // The getExecutionOrder function returns an array with a length different
+  // from the number of nodes if a cycle is detected.
+  const executionOrder = getExecutionOrder(nodes, edges);
+  return executionOrder.length === nodes.length;
+}
+
+/**
  * Executes a flow defined by a set of nodes and edges.
  * 
  * @param nodes - The array of nodes from the React Flow state.
