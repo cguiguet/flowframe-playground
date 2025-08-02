@@ -7,10 +7,11 @@ import { SlackNodeConfiguration } from './SlackNode.configuration';
  * We add `webhookUrl` to store the Slack Incoming Webhook URL.
  */
 export interface SlackNodeData {
+  isRunning?: boolean;
   label: string;
   channel: string;
   message: string;
-  webhookUrl: string; // <-- ADD THIS LINE
+  webhookUrl: string;
 }
 
 /**

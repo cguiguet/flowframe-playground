@@ -19,6 +19,7 @@ export const SlackNode = memo(({ data, selected }: SlackNodeProps) => {
   return (
     <div className={cn(
       "px-3 py-1.5 shadow-md rounded-md bg-card border border-pink-400 min-w-[150px]", // Couleur Slack-like
+      data.isRunning ? 'ring-2 ring-offset-2 ring-pink-500 ring-offset-white' : '',
       selected && "border-blue-500"
     )}>
       {/* Poignée d'entrée */}

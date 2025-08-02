@@ -15,6 +15,12 @@ export default defineConfig(({ mode }) => ({
         secure: false,
         rewrite: (path) => path.replace(/^\/api\/slack/, ''),
       },
+      '/api/discord': {
+        target: 'https://discord.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api\/discord/, ''),
+      },
     },
   },
   plugins: [
