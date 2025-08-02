@@ -1,56 +1,39 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ReactFlow,
   addEdge,
   MiniMap,
   Controls,
   Background,
-  useNodesState,
-  useEdgesState,
-  Node,
-  Edge,
-  Connection,
   useReactFlow,
   ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Button } from '@/components/ui/button';
-import { Play } from 'lucide-react';
-import { nodeTypes, nodeLibrary } from '@/core/nodes/nodeRegistry';
+import { Play, Loader } from 'lucide-react';
+import { nodeTypes, nodeLibrary, allNodeDefinitions } from '@/core/nodes/nodeRegistry';
+import { runFlow } from '@/core/flow-executor';
+import { nanoid } from 'nanoid';
 
-// Initial nodes
-const initialNodes: Node[] = [
-  {
-    id: '1',
-    type: 'input',
-    data: { label: 'Input Node' },
-    position: { x: 250, y: 25 },
-  },
-];
-
-const initialEdges: Edge[] = [];
-
-let id = 1;
-const getId = () => `${id++}`;
-
-const NodeRedCanvasContent = ({ 
-  nodes,
-  edges,
-  onNodesChange,
-  onEdgesChange,
-  onConnect,
+// Sous-composant pour avoir accès au hook `useReactFlow`
+const CanvasContent = ({ 
+  nodes, 
+  edges, 
+  onNodesChange, 
+  onEdgesChange, 
+  onConnect, 
   onNodeClick,
-  setNodes
+  setNodes 
 }) => {
-  const reactFlowWrapper = useRef(null);
-  
+  const [isRunning, setIsRunning] = useState(false);
   const { screenToFlowPosition } = useReactFlow();
 
-  
-
-  const handleRun = () => {
-    console.log('Running flow with nodes:', nodes);
-    // TODO: Implement execution logic
+  const handleRun = async () => {
+    setIsRunning(true);
+    const result = await runFlow(nodes, edges);
+    console.log('Flow Result:', result);
+    alert(`Flow finished with status: ${result.success ? 'Success' : 'Error'}`);
+    setIsRunning(false);
   };
 
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -66,32 +49,24 @@ const NodeRedCanvasContent = ({
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
-
       const type = event.dataTransfer.getData('application/reactflow');
+      if (!type) return;
 
-      if (typeof type === 'undefined' || !type) {
-        return;
+      const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+      const nodeDefinition = allNodeDefinitions.find(def => def.type === type);
+      
+      if (nodeDefinition) {
+        const newNode = nodeDefinition.create();
+        newNode.id = nanoid();
+        newNode.position = position;
+        setNodes((nds) => nds.concat(newNode));
       }
-
-      const position = screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-      const newNode: Node = {
-        id: getId(),
-        type,
-        position,
-        data: { label: `${type} node` },
-      };
-
-      setNodes((nds) => nds.concat(newNode));
     },
-    [screenToFlowPosition, setNodes],
+    [screenToFlowPosition, setNodes]
   );
 
   return (
     <div className="h-full flex">
-      {/* Node Library on the left */}
       <div className="w-48 bg-card border-r border-border flex flex-col">
         <div className="p-3 border-b border-border">
           <h3 className="text-sm font-medium text-card-foreground">Node Library</h3>
@@ -109,20 +84,15 @@ const NodeRedCanvasContent = ({
           ))}
         </div>
       </div>
-
-      {/* Main Canvas */}
       <div className="flex-1 flex flex-col">
-        {/* Header with Run button */}
         <div className="h-12 bg-card border-b border-border flex items-center justify-between px-4">
           <h2 className="text-sm font-medium text-card-foreground">Flow Canvas</h2>
-          <Button onClick={handleRun} size="sm" className="gap-2">
-            <Play className="h-4 w-4" />
-            Run
+          <Button onClick={handleRun} size="sm" className="gap-2" disabled={isRunning}>
+            {isRunning ? <Loader className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+            {isRunning ? 'Running...' : 'Run'}
           </Button>
         </div>
-
-        {/* ReactFlow Canvas */}
-        <div className="flex-1" ref={reactFlowWrapper}>
+        <div className="flex-1">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -146,26 +116,11 @@ const NodeRedCanvasContent = ({
   );
 };
 
-const NodeRedCanvas = ({ 
-  nodes,
-  edges,
-  onNodesChange,
-  onEdgesChange,
-  onConnect,
-  onNodeClick,
-  setNodes
-}) => {
+// Composant principal qui fournit le contexte React Flow
+const NodeRedCanvas = (props) => {
   return (
     <ReactFlowProvider>
-      <NodeRedCanvasContent 
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={onNodeClick} 
-        setNodes={setNodes}
-      />
+      <CanvasContent {...props} />
     </ReactFlowProvider>
   );
 };
