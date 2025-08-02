@@ -1,38 +1,39 @@
 import { Node } from '@xyflow/react';
 import { SlackNode } from './SlackNode';
-import { SlackNodeConfiguration } from './SlackNode.configuration'; // Import du composant de configuration
+import { SlackNodeConfiguration } from './SlackNode.configuration';
 
 /**
- * Définit la structure des données spécifiques pour ce nœud.
+ * Defines the specific data structure for this node.
+ * We add `webhookUrl` to store the Slack Incoming Webhook URL.
  */
 export interface SlackNodeData {
   label: string;
   channel: string;
   message: string;
+  webhookUrl: string; // <-- ADD THIS LINE
 }
 
 /**
- * La définition complète pour le SlackNode.
+ * The complete definition for the SlackNode.
  */
 export const SlackNodeDefinition = {
   /**
-   * Identifiant de type unique.
+   * Unique type identifier.
    */
   type: 'slack',
   
   /**
-   * Le composant React pour l'affichage sur le canevas.
+   * The React component for the canvas view.
    */
   component: SlackNode,
 
   /**
-   * Le composant React pour le panneau de configuration.
-   * C'est la nouvelle propriété clé qui lie un nœud à son formulaire.
+   * The React component for the configuration panel.
    */
   configurationComponent: SlackNodeConfiguration,
 
   /**
-   * Métadonnées pour la barre latérale.
+   * Metadata for the side panel library.
    */
   library: {
     label: 'Slack',
@@ -40,7 +41,7 @@ export const SlackNodeDefinition = {
   },
 
   /**
-   * Crée une nouvelle instance du nœud avec des valeurs par défaut.
+   * Creates a new instance of the node with default values.
    */
   create: (): Node<SlackNodeData> => ({
     id: '',
@@ -48,13 +49,14 @@ export const SlackNodeDefinition = {
     position: { x: 0, y: 0 },
     data: {
       label: 'Send Message',
-      channel: '#general',
-      message: 'Hello from your flow app!',
+      channel: '', // Channel is optional in Slack's webhook payload
+      message: 'Hello from your flow app! Data from start node: {{ $json.message }}',
+      webhookUrl: '', // <-- ADD THIS LINE with a default empty value
     },
   }),
 
   /**
-   * Définit les poignées de connexion (entrées/sorties).
+   * Defines connection handles (inputs/outputs).
    */
   handles: {
     inputs: [{ id: 'input', type: 'target' }],

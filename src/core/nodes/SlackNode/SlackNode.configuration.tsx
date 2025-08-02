@@ -3,12 +3,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SlackNodeData } from './SlackNode.definition';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Terminal } from 'lucide-react';
 
 /**
- * Définit les props requises par ce formulaire de configuration.
- * - `nodeData`: Les données actuelles du nœud à afficher dans les champs.
- * - `onDataChange`: Une fonction de rappel pour remonter les nouvelles données
- *   au composant parent lorsque l'utilisateur modifie un champ.
+ * Defines the props required by this configuration form.
+ * - `nodeData`: The current data of the node to display in the fields.
+ * - `onDataChange`: A callback function to update the node's data.
  */
 interface SlackNodeConfigurationProps {
   nodeData: SlackNodeData;
@@ -16,14 +17,13 @@ interface SlackNodeConfigurationProps {
 }
 
 /**
- * Le composant de formulaire spécifique pour le nœud Slack.
- * Il est responsable de l'affichage et de la mise à jour des paramètres du nœud.
+ * The specific form component for the Slack node.
  */
 export const SlackNodeConfiguration: React.FC<SlackNodeConfigurationProps> = ({ nodeData, onDataChange }) => {
 
   /**
-   * Gère les changements sur tous les champs du formulaire.
-   * Utilise l'attribut `name` des champs pour mettre à jour la bonne propriété dans l'état.
+   * Handles changes for all form fields.
+   * It uses the `name` attribute of the input to update the correct property.
    */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -31,32 +31,54 @@ export const SlackNodeConfiguration: React.FC<SlackNodeConfigurationProps> = ({ 
       ...nodeData,
       [name]: value,
     };
-    onDataChange(updatedData); // Envoie les nouvelles données au state global
+    onDataChange(updatedData); // Send new data to the global state
   };
 
   return (
     <div className="space-y-6 p-4">
-      {/* Champ pour le nom du canal Slack */}
+      <Alert>
+        <Terminal className="h-4 w-4" />
+        <AlertTitle>How to get a Webhook URL</AlertTitle>
+        <AlertDescription>
+          You need to create a Slack App and generate an "Incoming Webhook" URL. 
+          Follow the official Slack guide for instructions.
+        </AlertDescription>
+      </Alert>
+
+      {/* Field for the Slack Webhook URL */}
       <div className="space-y-2">
-        <Label htmlFor="channel">Channel</Label>
+        <Label htmlFor="webhookUrl">Webhook URL</Label>
         <Input
-          id="channel"
-          name="channel" // Le nom doit correspondre à la clé dans SlackNodeData
-          value={nodeData.channel}
+          id="webhookUrl"
+          name="webhookUrl" // Name must match the key in SlackNodeData
+          value={nodeData.webhookUrl}
           onChange={handleInputChange}
-          placeholder="Ex: #general, @user, etc."
+          placeholder="https://hooks.slack.com/services/..."
+          type="password" // Use password type to hide the secret URL
         />
       </div>
 
-      {/* Champ pour le contenu du message */}
+      {/* Field for the Slack channel name (optional) */}
+      <div className="space-y-2">
+        <Label htmlFor="channel">Channel (Optional)</Label>
+        <Input
+          id="channel"
+          name="channel" // Name must match the key in SlackNodeData
+          value={nodeData.channel}
+          onChange={handleInputChange}
+          placeholder="Overrides the webhook's default channel"
+        />
+      </div>
+
+      {/* Field for the message content */}
       <div className="space-y-2">
         <Label htmlFor="message">Message</Label>
         <Textarea
           id="message"
-          name="message" // Le nom doit correspondre à la clé dans SlackNodeData
+          name="message" // Name must match the key in SlackNodeData
           value={nodeData.message}
           onChange={handleInputChange}
-          placeholder="Entrez votre message. Vous pouvez utiliser des expressions comme {{ $json.message }}."
+          placeholder="Enter your message. You can use expressions like {{ $json.message }}."
           rows={6}
         />
       </div>
