@@ -96,7 +96,7 @@ const NodeLibrary: React.FC<NodeLibraryProps> = ({ isCollapsed, onToggleCollapse
                 <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${collapsedCategories[category] ? '' : 'rotate-180'}`} />
               </div>
                             <div className={`transition-all duration-300 ease-in-out overflow-hidden ${collapsedCategories[category] ? 'max-h-0' : 'max-h-screen'}`}>
-                <div className="space-y-3 pt-3">
+                <div className="space-y-3 p-3">
                 {nodes.map((node) => (
                   <div
                     key={node.type}
@@ -106,10 +106,10 @@ const NodeLibrary: React.FC<NodeLibraryProps> = ({ isCollapsed, onToggleCollapse
                     onMouseEnter={() => handleMouseEnter(node.type)}
                     onMouseLeave={handleMouseLeave}
                   >
-                    <div className="text-base font-medium text-slate-700">{node.label}</div>
-                    {(searchTerm || hoveredNode === node.type) && node.description && (
-                      <p className="text-sm text-slate-500 mt-1">{node.description}</p>
-                    )}
+                    <div className="text-base font-medium text-slate-700 whitespace-nowrap overflow-hidden text-ellipsis">{node.label}</div>
+                    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${(searchTerm || hoveredNode === node.type) && node.description ? 'max-h-40 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
+                      <p className="text-sm text-slate-500">{node.description}</p>
+                    </div>
                   </div>
                 ))}
                 </div>
