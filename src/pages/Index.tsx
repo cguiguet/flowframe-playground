@@ -1,17 +1,30 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import SidePanel from "@/components/SidePanel";
 import NodeRedCanvas from "@/components/NodeRedCanvas";
 import ConfigurationPanel from "@/components/ConfigurationPanel";
-import { useNodesState, useEdgesState, addEdge, Node, Edge, Connection } from '@xyflow/react';
+import { useNodesState, useEdgesState, addEdge, Node, Edge, Connection, NodeChange } from '@xyflow/react';
 
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
 
 const Index = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+    const onNodesChange = useCallback((changes: NodeChange[]) => {
+    onNodesChangeOriginal(changes);
+
+    const selectionChange = changes.find((change): change is NodeChange & { type: 'select' } => change.type === 'select');
+
+    if (selectionChange) {
+      if (!selectionChange.selected) {
+        // If the currently selected node is the one being deselected, close the panel.
+        setSelectedNode(prev => prev?.id === selectionChange.id ? null : prev);
+      }
+    }
+  }, [onNodesChangeOriginal]);
 
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
@@ -23,6 +36,10 @@ const Index = () => {
   }, []);
 
   const handlePaneClick = useCallback(() => {
+    setSelectedNode(null);
+  }, []);
+
+  const handleClosePanel = useCallback(() => {
     setSelectedNode(null);
   }, []);
 
@@ -39,6 +56,21 @@ const Index = () => {
       setSelectedNode(prev => prev ? { ...prev, data: newData } : null);
     }
   }, [setNodes, selectedNode]);
+
+  const deleteNode = useCallback((nodeId: string) => {
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    setSelectedNode(null);
+    }, [setNodes, setEdges]);
+
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        selected: node.id === selectedNode?.id,
+      }))
+    );
+  }, [selectedNode, setNodes]);
   
   return (
     <div className="h-screen w-screen">
@@ -62,6 +94,8 @@ const Index = () => {
             <ConfigurationPanel 
               selectedNode={selectedNode}
               onNodeDataChange={handleNodeDataChange}
+              onDeleteNode={deleteNode}
+              onClose={handleClosePanel}
             />
           </ResizablePanel>
         )}

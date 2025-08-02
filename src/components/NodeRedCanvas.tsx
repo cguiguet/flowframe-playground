@@ -66,15 +66,12 @@ const CanvasContent = ({
   return (
     <div className="h-full flex">
       <NodeLibrary />
-      <div className="flex-1 flex flex-col">
-        <div className="h-12 bg-card border-b border-border flex items-center justify-between px-4">
-          <h2 className="text-sm font-medium text-card-foreground">Flow Canvas</h2>
-          <Button onClick={handleRun} size="sm" className="gap-2" disabled={isRunning}>
-            {isRunning ? <Loader className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-            {isRunning ? 'Running...' : 'Run'}
-          </Button>
-        </div>
-        <div className="flex-1">
+      <div className="flex-1 relative">
+        <Button onClick={handleRun} size="sm" className="gap-2 absolute top-4 right-4 z-10 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200" disabled={isRunning}>
+          {isRunning ? <Loader className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+          {isRunning ? 'Running...' : 'Run'}
+        </Button>
+        <div className="flex-1 h-full">
           <ReactFlow
             nodes={nodes}
             edges={edges}

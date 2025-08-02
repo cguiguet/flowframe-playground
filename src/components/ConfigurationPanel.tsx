@@ -1,6 +1,8 @@
 import React from 'react';
 import { Node } from '@xyflow/react';
 import { nodeConfigurationPanels } from '@/core/nodes/nodeRegistry';
+import { Button } from '@/components/ui/button';
+import { Trash2, X } from 'lucide-react';
 
 /**
  * Props pour le panneau de configuration.
@@ -10,13 +12,15 @@ import { nodeConfigurationPanels } from '@/core/nodes/nodeRegistry';
 interface ConfigurationPanelProps {
   selectedNode: Node | null;
   onNodeDataChange: (nodeId: string, newData: any) => void;
+    onDeleteNode: (nodeId: string) => void;
+  onClose: () => void;
 }
 
 /**
  * Ce composant affiche dynamiquement le formulaire de configuration approprié
  * pour le nœud sélectionné.
  */
-const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, onNodeDataChange }) => {
+const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, onNodeDataChange, onDeleteNode, onClose }) => {
   // Si aucun nœud n'est sélectionné, afficher un message d'aide.
   if (!selectedNode) {
     return (
@@ -37,10 +41,14 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, o
 
   return (
     <div className="border-l h-full bg-card flex flex-col">
-      <div className="p-4 border-b shrink-0">
-        <h3 className="font-bold text-lg text-card-foreground">Configuration</h3>
-        <p className="text-xs text-muted-foreground">Type: {selectedNode.type}</p>
-        <p className="text-xs text-muted-foreground">ID: {selectedNode.id}</p>
+            <div className="p-4 border-b shrink-0 flex justify-between items-center">
+                <div>
+          <h3 className="font-bold text-lg text-card-foreground">Configuration</h3>
+          <p className="text-xs text-muted-foreground">Type: {selectedNode.type}</p>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="flex-grow overflow-y-auto">
@@ -56,6 +64,17 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, o
             <p>Ce nœud n'a pas de configuration spécifique.</p>
           </div>
         )}
+      </div>
+
+      <div className="p-4 mt-auto border-t shrink-0">
+        <Button
+          variant="destructive"
+          className="w-full flex items-center gap-2"
+          onClick={() => onDeleteNode(selectedNode.id)}
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete Node
+        </Button>
       </div>
     </div>
   );

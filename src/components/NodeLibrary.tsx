@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { nodeLibrary } from '@/core/nodes/nodeRegistry';
-import { Pin, PinOff } from 'lucide-react';
+import { Pin, PinOff, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -11,8 +11,13 @@ const onDragStart = (event: React.DragEvent, nodeType: string) => {
 const NodeLibrary = () => {
   const [isPinned, setIsPinned] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
 
   const isOpen = isPinned || isHovering;
+
+  const toggleCategory = (category: string) => {
+    setCollapsedCategories(prev => ({ ...prev, [category]: !prev[category] }));
+  };
 
   const categorizedNodes = nodeLibrary.reduce((acc, node) => {
     const category = node.category || 'Uncategorized';
@@ -27,11 +32,11 @@ const NodeLibrary = () => {
     <div
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className={`relative h-full bg-card border-r border-border transition-all duration-300 ease-in-out ${isOpen ? 'w-64' : 'w-16'}`}>
+      className={`relative h-full bg-slate-50 border-r border-slate-200 transition-all duration-300 ease-in-out ${isOpen ? 'w-72' : 'w-20'}`}>
       
       {/* Header */}
       <div className={`p-3 flex items-center justify-between ${isOpen ? 'border-b' : ''} border-border`}>
-        <h3 className={`text-lg font-bold text-card-foreground whitespace-nowrap overflow-hidden transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+        <h3 className={`text-xl font-bold text-slate-800 whitespace-nowrap overflow-hidden transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
           Node Library
         </h3>
         <Button onClick={() => setIsPinned(!isPinned)} variant="ghost" size="icon" className="flex-shrink-0">
@@ -41,21 +46,26 @@ const NodeLibrary = () => {
 
       {/* Content: Either the full library or the vertical text */}
       <div className={`flex-1 overflow-hidden transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="p-3 space-y-4 h-full overflow-y-auto">
+        <div className="p-4 space-y-6 h-full overflow-y-auto">
           {Object.entries(categorizedNodes).map(([category, nodes]) => (
             <div key={category}>
-              <h4 className="text-sm font-semibold mb-2 text-muted-foreground">{category}</h4>
-              <div className="space-y-2">
+                            <div onClick={() => toggleCategory(category)} className="flex items-center justify-between cursor-pointer">
+                <h4 className="text-lg font-bold text-slate-700">{category}</h4>
+                <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${collapsedCategories[category] ? '' : 'rotate-180'}`} />
+              </div>
+                            <div className={`transition-all duration-300 ease-in-out overflow-hidden ${collapsedCategories[category] ? 'max-h-0' : 'max-h-screen'}`}>
+                <div className="space-y-3 pt-3">
                 {nodes.map((node) => (
                   <div
                     key={node.type}
-                    className="p-3 bg-secondary rounded-lg text-sm cursor-grab hover:bg-secondary/90 transition-colors shadow-sm"
+                    className="p-4 bg-white rounded-xl text-base font-medium text-slate-700 cursor-grab shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-slate-200"
                     draggable
                     onDragStart={(event) => onDragStart(event, node.type)}
                   >
                     {node.label}
                   </div>
                 ))}
+                </div>
               </div>
             </div>
           ))}
@@ -66,7 +76,7 @@ const NodeLibrary = () => {
       {!isOpen && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <h4 
-            className="text-sm font-semibold text-muted-foreground select-none"
+            className="text-lg font-bold text-slate-700 select-none"
             style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
           >
             Node Library
