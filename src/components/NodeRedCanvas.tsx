@@ -11,7 +11,8 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Button } from '@/components/ui/button';
 import { Play, Loader } from 'lucide-react';
-import { nodeTypes, nodeLibrary, allNodeDefinitions } from '@/core/nodes/nodeRegistry';
+import { nodeTypes, allNodeDefinitions } from '@/core/nodes/nodeRegistry';
+import NodeLibrary from './NodeLibrary';
 import { runFlow } from '@/core/flow-executor';
 import { nanoid } from 'nanoid';
 
@@ -36,10 +37,7 @@ const CanvasContent = ({
     setIsRunning(false);
   };
 
-  const onDragStart = (event: React.DragEvent, nodeType: string) => {
-    event.dataTransfer.setData('application/reactflow', nodeType);
-    event.dataTransfer.effectAllowed = 'move';
-  };
+
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -67,23 +65,7 @@ const CanvasContent = ({
 
   return (
     <div className="h-full flex">
-      <div className="w-48 bg-card border-r border-border flex flex-col">
-        <div className="p-3 border-b border-border">
-          <h3 className="text-sm font-medium text-card-foreground">Node Library</h3>
-        </div>
-        <div className="flex-1 p-2 space-y-2">
-          {nodeLibrary.map((node) => (
-            <div
-              key={node.type}
-              className="p-2 bg-secondary rounded text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
-              draggable
-              onDragStart={(event) => onDragStart(event, node.type)}
-            >
-              {node.label}
-            </div>
-          ))}
-        </div>
-      </div>
+      <NodeLibrary />
       <div className="flex-1 flex flex-col">
         <div className="h-12 bg-card border-b border-border flex items-center justify-between px-4">
           <h2 className="text-sm font-medium text-card-foreground">Flow Canvas</h2>
