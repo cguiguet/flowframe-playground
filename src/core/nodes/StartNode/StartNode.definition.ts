@@ -5,7 +5,8 @@ import { StartNode } from './StartNode';
  * Defines the data structure for the StartNode.
  * It contains a string that will be parsed as JSON.
  */
-export interface StartNodeData {
+export type StartNodeData = {
+  isRunning?: boolean;
   label: string;
   initialJsonData: string;
 }

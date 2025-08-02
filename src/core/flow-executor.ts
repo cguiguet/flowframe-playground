@@ -80,7 +80,11 @@ function getExecutionOrder(nodes: Node[], edges: Edge[]): string[] {
  * @param edges - The array of edges from the React Flow state.
  * @returns An object containing the final status, a detailed log, and all node outputs.
  */
-export async function runFlow(nodes: Node[], edges: Edge[]) {
+export async function runFlow(
+  nodes: Node[], 
+  edges: Edge[],
+  onNodeStart?: (nodeId: string | null) => void
+) {
   const executionOrder = getExecutionOrder(nodes, edges);
   const nodeMap = new Map(nodes.map(node => [node.id, node]));
   
@@ -91,6 +95,9 @@ export async function runFlow(nodes: Node[], edges: Edge[]) {
   console.log('Calculated Execution Order:', executionOrder);
 
   for (const nodeId of executionOrder) {
+    onNodeStart?.(nodeId);
+    // Add a small delay to make the highlight visible
+    await new Promise(resolve => setTimeout(resolve, 500));
     try {
       const node = nodeMap.get(nodeId)!;
       const executorInfo = nodeExecutors[node.type];
@@ -142,10 +149,11 @@ export async function runFlow(nodes: Node[], edges: Edge[]) {
     }
   }
 
+  onNodeStart?.(null); // Clear highlight when done
   console.log('Flow execution completed successfully.');
   return { 
-    success: true, 
-    log: executionLog, 
-    finalOutputs: Object.fromEntries(outputs) 
+    status: executionLog.some(entry => entry.status === 'error') ? 'error' : 'success',
+    log: executionLog,
+    outputs: Object.fromEntries(outputs)
   };
 }

@@ -14,7 +14,8 @@ const Index = () => {
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-    const [isFlowRunning, setIsFlowRunning] = useState(false);
+      const [isFlowRunning, setIsFlowRunning] = useState(false);
+  const [runningNodeId, setRunningNodeId] = useState<string | null>(null);
     const [isEmulatorVisible, setIsEmulatorVisible] = useState(false);
   const [isLibraryCollapsed, setIsLibraryCollapsed] = useState(false);
 
@@ -96,14 +97,15 @@ const Index = () => {
     }
     console.log('Running flow with:', { nodes, edges });
     try {
-      const result = await runFlow(nodes, edges);
+      const result = await runFlow(nodes, edges, setRunningNodeId);
       console.log('Flow Result:', result);
       // Optionally, show a success message
     } catch (error) {
       console.error('Flow execution failed:', error);
       // Optionally, show an error message
     } finally {
-            setIsFlowRunning(false);
+                setIsFlowRunning(false);
+    setRunningNodeId(null);
     }
   };
   
@@ -124,6 +126,7 @@ const Index = () => {
               handleRun={handleRun}
               isLibraryCollapsed={isLibraryCollapsed}
               onToggleLibrary={handleToggleLibrary}
+              runningNodeId={runningNodeId}
             />
         </ResizablePanel>
         

@@ -19,6 +19,7 @@ export const StartNode = memo(({ data, selected }: StartNodeProps) => {
   return (
     <div className={cn(
       "px-3 py-1.5 shadow-md rounded-md bg-card border border-green-500 w-[150px]",
+      data.isRunning ? 'ring-2 ring-offset-2 ring-green-500 ring-offset-white' : '',
       selected && "border-blue-500"
     )}>
       {/* Pas de poignée <Handle type="target"> car c'est un nœud de départ */}
