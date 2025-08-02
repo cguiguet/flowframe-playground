@@ -53,6 +53,16 @@ const Index = () => {
     setSelectedNode(null);
   }, []);
 
+  const handleNodeError = useCallback((nodeId: string, error: string) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, error } }
+          : node
+      )
+    );
+  }, [setNodes]);
+
   const handleNodeDataChange = useCallback((nodeId: string, newData: any) => {
     setNodes((nds) =>
       nds.map((node) =>
@@ -95,6 +105,13 @@ const Index = () => {
   };
 
   const handleRun = async () => {
+    // Clear previous errors
+    setNodes((nds) =>
+      nds.map((node) => {
+        const { error, ...restData } = node.data;
+        return { ...node, data: restData };
+      })
+    );
     setIsFlowRunning(true);
             setIsEmulatorVisible(true);
     if (!isLibraryCollapsed) {
@@ -102,7 +119,7 @@ const Index = () => {
     }
     console.log('Running flow with:', { nodes, edges });
     try {
-      const result = await runFlow(nodes, edges, setRunningNodeId);
+      const result = await runFlow(nodes, edges, setRunningNodeId, handleNodeError);
       console.log('Flow Result:', result);
       // Optionally, show a success message
     } catch (error) {

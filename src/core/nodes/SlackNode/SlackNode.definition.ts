@@ -8,6 +8,7 @@ import { SlackNodeConfiguration } from './SlackNode.configuration';
  */
 export interface SlackNodeData {
   isRunning?: boolean;
+  error?: string;
   label: string;
   channel: string;
   message: string;

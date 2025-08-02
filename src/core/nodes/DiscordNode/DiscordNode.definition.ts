@@ -8,6 +8,7 @@ import { DiscordNodeConfiguration } from './DiscordNode.configuration';
  */
 export interface DiscordNodeData {
   isRunning?: boolean;
+  error?: string;
   label: string;
   content: string; // Changed from 'message' to 'content' to match Discord's API
   webhookUrl: string;

@@ -9,6 +9,7 @@ export type DelayUnit = 'seconds' | 'minutes' | 'hours';
  */
 export interface DelayNodeData {
   isRunning?: boolean;
+  error?: string;
   label: string;
   delay: number;
   unit: DelayUnit;

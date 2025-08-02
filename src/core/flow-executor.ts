@@ -105,9 +105,10 @@ export function isFlowRunnable(nodes: Node[], edges: Edge[]): boolean {
  * @returns An object containing the final status, a detailed log, and all node outputs.
  */
 export async function runFlow(
-  nodes: Node[], 
+  nodes: Node[],
   edges: Edge[],
-  onNodeStart?: (nodeId: string | null) => void
+  onNodeStart?: (nodeId: string | null) => void,
+  onNodeError?: (nodeId: string, error: string) => void
 ) {
   const executionOrder = getExecutionOrder(nodes, edges);
   const nodeMap = new Map(nodes.map(node => [node.id, node]));
@@ -155,29 +156,31 @@ export async function runFlow(
       const node = nodeMap.get(nodeId)!;
       const errorMessage = error instanceof Error ? error.message : String(error);
 
-      executionLog.push({ 
-        nodeId, 
+      onNodeError?.(nodeId, errorMessage);
+
+      executionLog.push({
+        nodeId,
         nodeLabel: node.data.label || node.type,
-        status: 'error', 
+        status: 'error',
         error: errorMessage,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      console.error(`Error executing node "${node.data.label || nodeId}":`, error);
-      
+      console.error(`Error executing node "${node.data.label || nodeId}": ${errorMessage}`);
+
       // If one node fails, we stop the entire execution.
-      return { 
-        success: false, 
-        log: executionLog, 
-        finalOutputs: Object.fromEntries(outputs) 
+      return {
+        status: 'error',
+        log: executionLog,
+        outputs: Object.fromEntries(outputs),
       };
     }
   }
 
   onNodeStart?.(null); // Clear highlight when done
   console.log('Flow execution completed successfully.');
-  return { 
-    status: executionLog.some(entry => entry.status === 'error') ? 'error' : 'success',
+  return {
+    status: 'success',
     log: executionLog,
-    outputs: Object.fromEntries(outputs)
+    outputs: Object.fromEntries(outputs),
   };
 }
