@@ -18,16 +18,16 @@ interface StartNodeProps {
 export const StartNode = memo(({ data, selected }: StartNodeProps) => {
   return (
     <div className={cn(
-      "px-4 py-3 shadow-md rounded-lg bg-card border-2 border-green-500 w-[180px]",
+      "px-3 py-1.5 shadow-md rounded-md bg-card border border-green-500 w-[150px]",
       selected && "border-blue-500"
     )}>
       {/* Pas de poignée <Handle type="target"> car c'est un nœud de départ */}
       
-      <div className="flex items-center gap-3">
-        <PlayCircle className="h-6 w-6 text-green-600" />
+      <div className="flex items-center gap-2">
+        <PlayCircle className="h-4 w-4 text-green-600" />
         <div>
-          <div className="text-base font-bold text-card-foreground">{data.label}</div>
-          <div className="text-xs text-muted-foreground">Flow Trigger</div>
+          <div className="text-xs font-bold text-card-foreground">{data.label}</div>
+          <div className="text-[11px] text-muted-foreground">Flow Trigger</div>
         </div>
       </div>
       
