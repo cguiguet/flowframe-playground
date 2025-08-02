@@ -24,8 +24,8 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, o
   // Si aucun nœud n'est sélectionné, afficher un message d'aide.
   if (!selectedNode) {
     return (
-      <div className="p-4 h-full flex items-center justify-center text-muted-foreground">
-        <p>Sélectionnez un nœud pour le configurer.</p>
+      <div className="p-6 h-full flex items-center justify-center text-slate-500 bg-white rounded-lg shadow-lg m-4">
+        <p>Select a node to configure it.</p>
       </div>
     );
   }
@@ -40,14 +40,14 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, o
   };
 
   return (
-    <div className="border-l h-full bg-card flex flex-col">
-            <div className="p-4 border-b shrink-0 flex justify-between items-center">
-                <div>
-          <h3 className="font-bold text-lg text-card-foreground">Configuration</h3>
-          <p className="text-xs text-muted-foreground">Type: {selectedNode.type}</p>
+    <div className="bg-white rounded-xl shadow-2xl m-4 flex flex-col h-[calc(100%-2rem)]">
+            <div className="p-6 border-b border-slate-200 shrink-0 flex justify-between items-start">
+        <div>
+          <h3 className="font-bold text-xl text-slate-800">Configuration</h3>
+          <p className="text-sm text-slate-500">{selectedNode.type}</p>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
+        <Button variant="ghost" size="icon" onClick={onClose} className="text-slate-500 hover:bg-slate-100">
+          <X className="h-5 w-5" />
         </Button>
       </div>
 
@@ -66,10 +66,10 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, o
         )}
       </div>
 
-      <div className="p-4 mt-auto border-t shrink-0">
+      <div className="p-6 mt-auto border-t border-slate-200 shrink-0">
         <Button
-          variant="destructive"
-          className="w-full flex items-center gap-2"
+          variant="ghost"
+          className="w-full flex items-center justify-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg"
           onClick={() => onDeleteNode(selectedNode.id)}
         >
           <Trash2 className="h-4 w-4" />
