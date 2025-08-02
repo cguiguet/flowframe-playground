@@ -7,8 +7,8 @@ import NodeRedCanvas from "@/components/NodeRedCanvas";
 import ConfigurationPanel from "@/components/ConfigurationPanel";
 import { useNodesState, useEdgesState, addEdge, Node, Edge, Connection, NodeChange, MarkerType } from '@xyflow/react';
 
-const initialNodes: Node[] = [];
-const initialEdges: Edge[] = [];
+const initialNodes: Node[] = JSON.parse(localStorage.getItem('flow-nodes') || '[]');
+const initialEdges: Edge[] = JSON.parse(localStorage.getItem('flow-edges') || '[]');
 
 const Index = () => {
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(initialNodes);
@@ -92,8 +92,13 @@ const Index = () => {
     );
       }, [selectedNode, setNodes]);
 
-  useEffect(() => {
+    useEffect(() => {
     setIsFlowRunnable(checkIsFlowRunnable(nodes, edges));
+    // Don't save the initial empty state
+    if (nodes.length > 0 || edges.length > 0) {
+      localStorage.setItem('flow-nodes', JSON.stringify(nodes));
+      localStorage.setItem('flow-edges', JSON.stringify(edges));
+    }
   }, [nodes, edges]);
 
   const handleCloseEmulator = () => {
