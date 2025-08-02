@@ -24,18 +24,11 @@ const CanvasContent = ({
   onEdgesChange, 
   onConnect, 
   onNodeClick,
-  setNodes 
+  setNodes,
+  isRunning,
+  handleRun
 }) => {
-  const [isRunning, setIsRunning] = useState(false);
   const { screenToFlowPosition } = useReactFlow();
-
-  const handleRun = async () => {
-    setIsRunning(true);
-    const result = await runFlow(nodes, edges);
-    console.log('Flow Result:', result);
-    alert(`Flow finished with status: ${result.success ? 'Success' : 'Error'}`);
-    setIsRunning(false);
-  };
 
 
 
