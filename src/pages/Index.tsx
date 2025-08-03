@@ -6,6 +6,7 @@ import NodeRedCanvas from "@/components/NodeRedCanvas";
 
 import ConfigurationPanel from "@/components/ConfigurationPanel";
 import { useNodesState, useEdgesState, addEdge, Node, Edge, Connection, NodeChange, MarkerType } from '@xyflow/react';
+import { ExecutionLogEntry } from "@/core/flow-executor";
 
 const initialNodes: Node[] = JSON.parse(localStorage.getItem('flow-nodes') || '[]');
 const initialEdges: Edge[] = JSON.parse(localStorage.getItem('flow-edges') || '[]');
@@ -18,7 +19,8 @@ const Index = () => {
   const [runningNodeId, setRunningNodeId] = useState<string | null>(null);
     const [isEmulatorVisible, setIsEmulatorVisible] = useState(false);
     const [isLibraryCollapsed, setIsLibraryCollapsed] = useState(false);
-  const [isFlowRunnable, setIsFlowRunnable] = useState(false);
+    const [isFlowRunnable, setIsFlowRunnable] = useState(false);
+  const [executionLog, setExecutionLog] = useState<ExecutionLogEntry[]>([]);
 
     const onNodesChange = useCallback((changes: NodeChange[]) => {
     onNodesChangeOriginal(changes);
@@ -109,30 +111,35 @@ const Index = () => {
     setIsLibraryCollapsed(!isLibraryCollapsed);
   };
 
-  const handleRun = async () => {
-    // Clear previous errors
+  const handleLogEntry = useCallback((entry: ExecutionLogEntry) => {
+    setExecutionLog((prevLog) => [...prevLog, entry]);
+  }, []);
+
+    const handleRun = async () => {
+    // Clear previous errors and logs
+    setExecutionLog([]);
     setNodes((nds) =>
       nds.map((node) => {
         const { error, ...restData } = node.data;
         return { ...node, data: restData };
       })
     );
+    
     setIsFlowRunning(true);
-            setIsEmulatorVisible(true);
+    setIsEmulatorVisible(true);
     if (!isLibraryCollapsed) {
       setIsLibraryCollapsed(true);
     }
-    console.log('Running flow with:', { nodes, edges });
+
     try {
-      const result = await runFlow(nodes, edges, setRunningNodeId, handleNodeError);
-      console.log('Flow Result:', result);
-      // Optionally, show a success message
+      await runFlow(nodes, edges, setRunningNodeId, handleNodeError, handleLogEntry);
     } catch (error) {
-      console.error('Flow execution failed:', error);
-      // Optionally, show an error message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Flow execution failed:', errorMessage);
+      // Optionally, update UI to show a general error message
     } finally {
-                setIsFlowRunning(false);
-    setRunningNodeId(null);
+      setIsFlowRunning(false);
+      setRunningNodeId(null);
     }
   };
   
@@ -175,8 +182,8 @@ const Index = () => {
         {isEmulatorVisible && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={50} minSize={30}>
-              <SidePanel onClose={handleCloseEmulator} />
+            <ResizablePanel defaultSize={30} minSize={30}>
+              <SidePanel onClose={handleCloseEmulator} executionLog={executionLog} />
             </ResizablePanel>
           </>
         )}

@@ -18,18 +18,22 @@ export const execute = async (
 
   const delayInMs = (config.delay || 0) * (multipliers[config.unit] || 1000);
 
+  const output = {
+    passthrough: input[0],
+    logOutput: `Waited for ${delayInMs} ms`
+  };
+
   if (delayInMs <= 0) {
-    // If no delay, just pass the data through immediately.
-    return input[0];
+    return output;
   }
 
   console.log(`--- DELAY NODE: Pausing for ${config.delay} ${config.unit} (${delayInMs}ms) ---`);
 
   // Create a promise that resolves after the specified time
-  await new Promise(resolve => setTimeout(resolve, delayInMs));
-
-  console.log('--- DELAY NODE: Resuming execution ---');
-
-  // Pass the original data through to the next node
-  return input[0];
+  return new Promise(resolve => {
+    setTimeout(() => {
+      console.log('--- DELAY NODE: Resuming execution ---');
+      resolve(output);
+    }, delayInMs);
+  });
 };

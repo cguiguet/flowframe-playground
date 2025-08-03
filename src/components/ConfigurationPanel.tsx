@@ -61,7 +61,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ selectedNode, o
         ) : (
           // Sinon, on affiche un message par défaut.
           <div className="p-4 text-muted-foreground">
-            <p>Ce nœud n'a pas de configuration spécifique.</p>
+            <p>This node has no configuration.</p>
           </div>
         )}
       </div>

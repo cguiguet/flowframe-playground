@@ -19,7 +19,7 @@ export const execute = async (
 
   // 1. Validate Configuration
   if (!config.webhookUrl) {
-    throw new Error('Webhook URL is not configured. Please add it in the Slack node settings.');
+    throw new Error('Webhook URL is not configured for the Slack node. Please add it in the Slack node settings.');
   }
 
   // A simple validation to ensure it looks like a Slack webhook URL.

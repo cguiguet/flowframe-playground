@@ -108,12 +108,11 @@ export async function runFlow(
   nodes: Node[],
   edges: Edge[],
   onNodeStart?: (nodeId: string | null) => void,
-  onNodeError?: (nodeId: string, error: string) => void
+  onNodeError?: (nodeId: string, error: string) => void,
+  onLogEntry?: (entry: ExecutionLogEntry) => void
 ) {
   const executionOrder = getExecutionOrder(nodes, edges);
-  const nodeMap = new Map(nodes.map(node => [node.id, node]));
-  
-  // A map to store the output of each executed node. The key is the node ID.
+  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
   const outputs = new Map<string, any>();
   const executionLog: ExecutionLogEntry[] = [];
 
@@ -121,8 +120,8 @@ export async function runFlow(
 
   for (const nodeId of executionOrder) {
     onNodeStart?.(nodeId);
-    // Add a small delay to make the highlight visible
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     try {
       const node = nodeMap.get(nodeId)!;
       const executorInfo = nodeExecutors[node.type];
@@ -131,43 +130,44 @@ export async function runFlow(
         throw new Error(`No executor function found for node type: "${node.type}"`);
       }
 
-      // Find all edges connecting to the current node's inputs.
-      const parentEdges = edges.filter(edge => edge.target === nodeId);
-      
-      // Gather the outputs from all parent nodes.
-      const inputData = parentEdges.map(edge => outputs.get(edge.source));
-      
-      // Execute the node's logic.
+      const parentEdges = edges.filter((edge) => edge.target === nodeId);
+      const inputData = parentEdges.map((edge) => outputs.get(edge.source));
       const nodeOutput = await executorInfo.execute(inputData, node.data);
-      
-      // Store the output for child nodes to use.
-      outputs.set(nodeId, nodeOutput);
 
-      executionLog.push({ 
-        nodeId, 
+      const isStructuredOutput = typeof nodeOutput === 'object' && nodeOutput !== null && 'passthrough' in nodeOutput && 'logOutput' in nodeOutput;
+
+      const logOutput = isStructuredOutput ? nodeOutput.logOutput : nodeOutput;
+      const passthroughOutput = isStructuredOutput ? nodeOutput.passthrough : nodeOutput;
+
+      outputs.set(nodeId, passthroughOutput);
+
+      const logEntry: ExecutionLogEntry = {
+        nodeId,
         nodeLabel: node.data.label || node.type,
-        status: 'success', 
-        output: nodeOutput,
-        timestamp: new Date().toISOString()
-      });
+        status: 'success',
+        output: logOutput,
+        timestamp: new Date().toISOString(),
+      };
+      executionLog.push(logEntry);
+      onLogEntry?.(logEntry);
       console.log(`Node "${node.data.label || nodeId}" executed successfully.`);
-
-    } catch (error) {
+    } catch (error: unknown) {
       const node = nodeMap.get(nodeId)!;
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       onNodeError?.(nodeId, errorMessage);
 
-      executionLog.push({
+      const logEntry: ExecutionLogEntry = {
         nodeId,
         nodeLabel: node.data.label || node.type,
         status: 'error',
         error: errorMessage,
         timestamp: new Date().toISOString(),
-      });
+      };
+      executionLog.push(logEntry);
+      onLogEntry?.(logEntry);
       console.error(`Error executing node "${node.data.label || nodeId}": ${errorMessage}`);
 
-      // If one node fails, we stop the entire execution.
       return {
         status: 'error',
         log: executionLog,
@@ -176,7 +176,7 @@ export async function runFlow(
     }
   }
 
-  onNodeStart?.(null); // Clear highlight when done
+  onNodeStart?.(null);
   console.log('Flow execution completed successfully.');
   return {
     status: 'success',

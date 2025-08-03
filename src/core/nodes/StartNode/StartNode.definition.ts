@@ -50,7 +50,7 @@ export const StartNodeDefinition = {
         [
           {
             "json": {
-              "message": "Hello from your new flow!",
+              "message": "Starting your new flow!",
               "runId": "abc-123"
             }
           }
