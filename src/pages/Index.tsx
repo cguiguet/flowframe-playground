@@ -168,7 +168,7 @@ const Index = () => {
         {selectedNode && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20} minSize={15}>
+            <ResizablePanel defaultSize={25} minSize={20}>
               <ConfigurationPanel 
                 selectedNode={selectedNode}
                 onNodeDataChange={handleNodeDataChange}
