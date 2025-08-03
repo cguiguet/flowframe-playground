@@ -41,7 +41,7 @@ export const MinitapNodeDefinition: NodeDefinition<MinitapNodeData> = {
    */
   library: {
     label: 'Minitap',
-    description: 'Sends a message to a Minitap server.',
+    description: 'Sends instructions to a Minitap device.',
     category: 'Services',
   },
   
@@ -53,7 +53,7 @@ export const MinitapNodeDefinition: NodeDefinition<MinitapNodeData> = {
     type: 'minitap',
     position: { x: 0, y: 0 },
     data: {
-      label: 'Send Message',
+      label: 'Minitap',
       minitapUrl: '',
       action: '',
       expectedOutput: '',

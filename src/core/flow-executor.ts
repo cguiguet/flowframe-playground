@@ -20,7 +20,7 @@ export type ExecutionLogEntry = {
  * @param edges - The array of edges from the React Flow state.
  * @returns An array of node IDs in the correct order of execution.
  */
-function getExecutionOrder(nodes: Node[], edges: Edge[]): string[] {
+function getExecutionOrder(nodes: Node[], edges: Edge[], startNodeIds: string[]): string[] {
   const inDegree = new Map<string, number>();
   const adjList = new Map<string, string[]>();
 
@@ -40,10 +40,8 @@ function getExecutionOrder(nodes: Node[], edges: Edge[]): string[] {
     }
   }
 
-  // Find all nodes with an in-degree of 0 (i.e., start nodes)
-  const queue = nodes
-    .filter(node => inDegree.get(node.id) === 0)
-    .map(node => node.id);
+  // The queue starts with the given start nodes
+  const queue = [...startNodeIds];
   
   const result: string[] = [];
 
@@ -65,9 +63,11 @@ function getExecutionOrder(nodes: Node[], edges: Edge[]): string[] {
   }
   
   // If the result doesn't include all nodes, there's a cycle in the graph.
-  if (result.length !== nodes.length) {
-    console.error("Error: A cycle was detected in the graph. Flow execution cannot proceed.");
-    return []; // Or throw an error
+  if (result.length < nodes.length) {
+    const nodeIdsInResult = new Set(result);
+    const missingNodes = nodes.filter(n => !nodeIdsInResult.has(n.id)).map(n => n.id);
+    console.error(`Error: A cycle was detected. Missing nodes from execution order: ${missingNodes.join(', ')}`);
+    throw new Error('A cycle was detected in the graph, preventing execution.');
   }
 
   return result;
@@ -91,10 +91,20 @@ export function isFlowRunnable(nodes: Node[], edges: Edge[]): boolean {
     return false;
   }
 
-  // The getExecutionOrder function returns an array with a length different
-  // from the number of nodes if a cycle is detected.
-  const executionOrder = getExecutionOrder(nodes, edges);
-  return executionOrder.length === nodes.length;
+  try {
+    const startNodes = nodes.filter(node => node.type === 'start');
+    if (startNodes.length === 0) return false;
+
+    const { reachableNodes, reachableEdges } = getReachableGraph(nodes, edges);
+    if (reachableNodes.length === 0) return true; // No start node connected, but not an error state
+
+    const startNodeIds = startNodes.map(n => n.id).filter(id => reachableNodes.some(rn => rn.id === id));
+    getExecutionOrder(reachableNodes, reachableEdges, startNodeIds);
+  } catch (error) {
+    return false; // Cycle detected
+  }
+
+  return true;
 }
 
 /**
@@ -111,8 +121,21 @@ export async function runFlow(
   onNodeError?: (nodeId: string, error: string) => void,
   onLogEntry?: (entry: ExecutionLogEntry) => void
 ) {
-  const executionOrder = getExecutionOrder(nodes, edges);
-  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+  const { reachableNodes, reachableEdges } = getReachableGraph(nodes, edges);
+  const startNodeIds = reachableNodes.filter(n => n.type === 'start').map(n => n.id);
+
+  if (startNodeIds.length === 0) {
+    console.log('No start node found or connected. Nothing to execute.');
+    onNodeStart?.(null);
+    return {
+      status: 'success',
+      log: [],
+      outputs: {},
+    };
+  }
+
+  const executionOrder = getExecutionOrder(reachableNodes, reachableEdges, startNodeIds);
+  const nodeMap = new Map(reachableNodes.map((node) => [node.id, node]));
   const outputs = new Map<string, any>();
   const executionLog: ExecutionLogEntry[] = [];
 
@@ -130,7 +153,7 @@ export async function runFlow(
         throw new Error(`No executor function found for node type: "${node.type}"`);
       }
 
-      const parentEdges = edges.filter((edge) => edge.target === nodeId);
+      const parentEdges = reachableEdges.filter((edge) => edge.target === nodeId);
       const inputData = parentEdges.map((edge) => outputs.get(edge.source));
       const nodeOutput = await executorInfo.execute(inputData, node.data);
 
@@ -183,4 +206,50 @@ export async function runFlow(
     log: executionLog,
     outputs: Object.fromEntries(outputs),
   };
+}
+
+/**
+ * Traverses the graph from the 'start' nodes to find all reachable nodes and edges.
+ * This ensures that only the parts of the flow connected to a start node are executed.
+ */
+function getReachableGraph(nodes: Node[], edges: Edge[]): { reachableNodes: Node[], reachableEdges: Edge[] } {
+  const adjList = new Map<string, string[]>();
+  const edgeMap = new Map<string, Edge>();
+
+  for (const node of nodes) {
+    adjList.set(node.id, []);
+  }
+
+  for (const edge of edges) {
+    if (adjList.has(edge.source)) {
+      adjList.get(edge.source)!.push(edge.target);
+    }
+    edgeMap.set(edge.id, edge);
+  }
+
+  const startNodes = nodes.filter(node => node.type === 'start');
+  const queue = startNodes.map(node => node.id);
+  const visitedNodes = new Set<string>(queue);
+  const reachableEdges = new Set<Edge>();
+
+  while (queue.length > 0) {
+    const u = queue.shift()!;
+
+    for (const v of adjList.get(u) || []) {
+      // Find the edge that connects u and v
+      const connectingEdge = edges.find(e => e.source === u && e.target === v);
+      if (connectingEdge) {
+        reachableEdges.add(connectingEdge);
+      }
+
+      if (!visitedNodes.has(v)) {
+        visitedNodes.add(v);
+        queue.push(v);
+      }
+    }
+  }
+
+  const reachableNodes = nodes.filter(node => visitedNodes.has(node.id));
+
+  return { reachableNodes, reachableEdges: Array.from(reachableEdges) };
 }
